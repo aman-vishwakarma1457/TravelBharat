@@ -2011,9 +2011,7 @@ function StatesPanel() {
         {states.map((state) => (
           <Link
             key={state.name}
-            to={`/state/${encodeURIComponent(
-              state.name
-            )}`}
+            to={`/state/${encodeURIComponent(state.name)}?from=admin-states`}
             className="card group overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
           >
 
@@ -2122,9 +2120,7 @@ function CategoriesPanel() {
             return (
               <Link
                 key={category.name}
-                to={`/category/${encodeURIComponent(
-                  category.name
-                )}`}
+                to={`/category/${encodeURIComponent(category.name)}?from=admin-categories`}
                 className="card group overflow-hidden p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
 

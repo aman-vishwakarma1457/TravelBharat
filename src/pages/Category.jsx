@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 import { categories } from "../data/categories";
@@ -25,6 +29,10 @@ export default function Category() {
 
   const stateFromUrl = params.get("state") || "";
 
+  // Check whether user came from Admin Panel → Categories
+  const fromAdmin =
+    params.get("from") === "admin-categories";
+
   const [filters, setFilters] = useState(() => ({
     ...defaultFilters,
     state: stateFromUrl,
@@ -47,7 +55,8 @@ export default function Category() {
     );
   }, [category, filters]);
 
-  // Category Not Found
+  /* Category Not Found */
+
   if (!category) {
     return (
       <>
@@ -62,8 +71,8 @@ export default function Category() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-lg text-sm text-slate-500 dark:text-slate-400">
-            The category you are looking for does not exist or may have
-            been removed.
+            The category you are looking for does not exist
+            or may have been removed.
           </p>
 
           <Link
@@ -88,6 +97,7 @@ export default function Category() {
 
       <div className="bg-slate-50/60 dark:bg-navy-950">
         {/* Category Hero */}
+
         <section className="relative overflow-hidden bg-navy-950">
           <img
             src={category.image}
@@ -99,6 +109,24 @@ export default function Category() {
 
           <div className="container-page absolute inset-0 flex items-center text-white">
             <div className="max-w-2xl">
+              {/* Back Button */}
+
+              {fromAdmin ? (
+                <Link
+                  to="/admin?view=categories"
+                  className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur-md transition hover:bg-orange-500"
+                >
+                  ← Back to Categories
+                </Link>
+              ) : (
+                <Link
+                  to="/explore"
+                  className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur-md transition hover:bg-orange-500"
+                >
+                  ← Back to Categories
+                </Link>
+              )}
+
               <p className="eyebrow text-orange-300">
                 Explore by Category
               </p>
@@ -115,8 +143,10 @@ export default function Category() {
         </section>
 
         {/* Content */}
+
         <div className="container-page section-pad">
           {/* Filters */}
+
           <FilterBar
             filters={filters}
             setFilters={setFilters}
@@ -125,6 +155,7 @@ export default function Category() {
           />
 
           {/* Heading */}
+
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="eyebrow">
@@ -149,6 +180,7 @@ export default function Category() {
           </div>
 
           {/* Destination Grid */}
+
           {results.length > 0 ? (
             <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {results.map((destination) => (
@@ -160,6 +192,7 @@ export default function Category() {
             </div>
           ) : (
             /* Empty State */
+
             <div className="mt-10 rounded-3xl border border-slate-200 bg-white px-6 py-14 text-center dark:border-white/10 dark:bg-navy-900">
               <h3 className="text-xl font-extrabold text-navy-900 dark:text-white">
                 No destinations found
@@ -186,6 +219,7 @@ export default function Category() {
           )}
 
           {/* Mobile Explore Link */}
+
           <div className="mt-8 flex justify-center sm:hidden">
             <Link
               to="/explore"
