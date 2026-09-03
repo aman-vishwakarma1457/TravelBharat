@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Map,
@@ -14,234 +14,332 @@ import {
   Menu,
   X,
   AlertTriangle,
-} from 'lucide-react'
-import { Link } from 'react-router-dom'
+} from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 
-import { destinations as seed } from '../data/destinations'
-import { states } from '../data/states'
-import { categories } from '../data/categories'
+import { destinations as seed } from "../data/destinations";
+import { states } from "../data/states";
+import { categories } from "../data/categories";
 
+// ============================================================
 // CONSTANTS
+// ============================================================
 
 const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1200&q=85'
+  "https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1200&q=85";
 
 const initial = seed.map((destination, index) => ({
   ...destination,
+
   status:
     index % 5 === 0
-      ? 'Pending Review'
+      ? "Pending Review"
       : index % 7 === 0
-        ? 'Draft'
-        : 'Verified',
+        ? "Draft"
+        : "Verified",
+
   lastUpdated: `2026-${String(
     (index % 9) + 1
-  ).padStart(2, '0')}-${String(
+  ).padStart(2, "0")}-${String(
     (index % 25) + 1
-  ).padStart(2, '0')}`,
-}))
+  ).padStart(2, "0")}`,
+}));
 
 const blank = {
-  name: '',
-  state: 'Rajasthan',
-  city: 'Jaipur',
-  category: 'Heritage',
-  description: '',
-  historicalSignificance: '',
-  bestTimeToVisit: 'October – March',
-  entryFee: 'Free',
-  timings: 'Daylight hours',
-  location: '',
-  bestSeason: 'Winter',
+  name: "",
+  state: "Rajasthan",
+  city: "Jaipur",
+  category: "Heritage",
+  description: "",
+  historicalSignificance: "",
+  bestTimeToVisit: "October – March",
+  entryFee: "Free",
+  timings: "Daylight hours",
+  location: "",
+  bestSeason: "Winter",
   popularity: 75,
   images: [FALLBACK_IMAGE],
-}
+};
 
+// ============================================================
 // IMAGE HELPER
+// ============================================================
 
 function getDestinationImage(destination) {
   if (Array.isArray(destination?.images)) {
     const validImage = destination.images.find(
       (image) =>
-        typeof image === 'string' &&
+        typeof image === "string" &&
         image.trim().length > 0
-    )
+    );
 
     if (validImage) {
-      return validImage
+      return validImage;
     }
   }
 
   if (
-    typeof destination?.image === 'string' &&
+    typeof destination?.image === "string" &&
     destination.image.trim()
   ) {
-    return destination.image
+    return destination.image;
   }
 
-  return FALLBACK_IMAGE
+  return FALLBACK_IMAGE;
 }
 
 function handleImageError(event) {
   if (
     event.currentTarget.dataset.fallbackApplied ===
-    'true'
+    "true"
   ) {
-    return
+    return;
   }
 
-  event.currentTarget.dataset.fallbackApplied = 'true'
-  event.currentTarget.src = FALLBACK_IMAGE
+  event.currentTarget.dataset.fallbackApplied = "true";
+  event.currentTarget.src = FALLBACK_IMAGE;
 }
 
+// ============================================================
 // MAIN ADMIN DASHBOARD
+// ============================================================
 
 export default function AdminDashboard() {
+  // ----------------------------------------------------------
+  // URL QUERY PARAMS
+  // ----------------------------------------------------------
+
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
+  const requestedView =
+    searchParams.get("view");
+
+  // ----------------------------------------------------------
+  // ITEMS
+  // ----------------------------------------------------------
+
   const [items, setItems] = useState(() => {
     try {
-      const stored = localStorage.getItem(
-        'tb-admin-items'
-      )
+      const stored =
+        localStorage.getItem(
+          "tb-admin-items"
+        );
 
       return stored
         ? JSON.parse(stored)
-        : initial
+        : initial;
     } catch {
-      return initial
+      return initial;
     }
-  })
+  });
 
-  const [view, setView] = useState('dashboard')
-  const [query, setQuery] = useState('')
-  const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState(blank)
-  const [sidebar, setSidebar] = useState(false)
+  // ----------------------------------------------------------
+  // VIEW
+  // IMPORTANT:
+  // /admin?view=destinations
+  // will open Destinations automatically.
+  // ----------------------------------------------------------
 
-  const [toasts, setToasts] = useState([])
+  const [view, setView] = useState(
+    () => requestedView || "dashboard"
+  );
+
+  // ----------------------------------------------------------
+  // OTHER STATES
+  // ----------------------------------------------------------
+
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(blank);
+  const [sidebar, setSidebar] = useState(false);
+
+  const [toasts, setToasts] = useState([]);
   const [deleteTarget, setDeleteTarget] =
-    useState(null)
+    useState(null);
 
-//  Persist catalogue
+  // ==========================================================
+  // SYNC VIEW WITH URL
+  // ==========================================================
+
+  useEffect(() => {
+    const allowedViews = [
+      "dashboard",
+      "destinations",
+      "states",
+      "categories",
+      "review",
+      "settings",
+      "form",
+    ];
+
+    if (
+      requestedView &&
+      allowedViews.includes(requestedView)
+    ) {
+      setView(requestedView);
+    }
+  }, [requestedView]);
+
+  // ==========================================================
+  // PERSIST CATALOGUE
+  // ==========================================================
 
   useEffect(() => {
     try {
       localStorage.setItem(
-        'tb-admin-items',
+        "tb-admin-items",
         JSON.stringify(items)
-      )
+      );
     } catch {
       // Ignore localStorage errors
     }
-  }, [items])
+  }, [items]);
 
-
-  // Newly Added
-
-
-
-  useEffect(() => {
-  const savedTheme = localStorage.getItem("tb-theme");
-
-  if (savedTheme === "dark") {
-    document.documentElement.classList.add("dark");
-  } else if (savedTheme === "light") {
-    document.documentElement.classList.remove("dark");
-  }
-}, []);
-
-//  Delete modal Escape
+  // ==========================================================
+  // THEME PERSISTENCE
+  // ==========================================================
 
   useEffect(() => {
-    if (!deleteTarget) return
+    try {
+      const savedTheme =
+        localStorage.getItem("tb-theme");
+
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add(
+          "dark"
+        );
+      } else if (savedTheme === "light") {
+        document.documentElement.classList.remove(
+          "dark"
+        );
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  // ==========================================================
+  // DELETE MODAL ESCAPE
+  // ==========================================================
+
+  useEffect(() => {
+    if (!deleteTarget) return;
 
     const onKey = (event) => {
-      if (event.key === 'Escape') {
-        setDeleteTarget(null)
+      if (event.key === "Escape") {
+        setDeleteTarget(null);
       }
-    }
+    };
 
     document.addEventListener(
-      'keydown',
+      "keydown",
       onKey
-    )
+    );
 
     return () => {
       document.removeEventListener(
-        'keydown',
+        "keydown",
         onKey
-      )
-    }
-  }, [deleteTarget])
+      );
+    };
+  }, [deleteTarget]);
 
-  // Search
+  // ==========================================================
+  // SEARCH
+  // ==========================================================
 
   const filtered = useMemo(() => {
-    const search = query.toLowerCase().trim()
+    const search = query
+      .toLowerCase()
+      .trim();
 
     return items.filter((destination) =>
-      `${destination.name || ''} ${
-        destination.state || ''
-      } ${destination.city || ''} ${
-        destination.category || ''
+      `${destination.name || ""} ${
+        destination.state || ""
+      } ${destination.city || ""} ${
+        destination.category || ""
       }`
         .toLowerCase()
         .includes(search)
-    )
-  }, [items, query])
+    );
+  }, [items, query]);
 
-// STACKED TOAST
+  // ==========================================================
+  // CHANGE ADMIN VIEW
+  // ==========================================================
+
+  const changeView = (nextView) => {
+    setView(nextView);
+    setSidebar(false);
+
+    // Keep URL in sync for normal navigation too.
+    if (nextView === "dashboard") {
+      setSearchParams({});
+    } else {
+      setSearchParams({
+        view: nextView,
+      });
+    }
+  };
+
+  // ==========================================================
+  // STACKED TOAST
+  // ==========================================================
 
   const showToast = (message) => {
-    const id = `${Date.now()}-${Math.random()}`
+    const id = `${Date.now()}-${Math.random()}`;
 
     const newToast = {
       ...message,
       id,
-    }
+    };
 
     setToasts((previous) => [
       ...previous,
       newToast,
-    ])
+    ]);
 
     window.setTimeout(() => {
       setToasts((previous) =>
         previous.filter(
           (toast) => toast.id !== id
         )
-      )
-    }, 3500)
-  }
+      );
+    }, 3500);
+  };
 
   const closeToast = (id) => {
     setToasts((previous) =>
       previous.filter(
         (toast) => toast.id !== id
       )
-    )
-  }
+    );
+  };
 
-//  SAVE DESTINATION
+  // ==========================================================
+  // SAVE DESTINATION
+  // ==========================================================
 
   const save = (event) => {
-    event.preventDefault()
+    event.preventDefault();
 
     if (!form.name.trim()) {
       showToast({
-        title: 'Name required',
+        title: "Name required",
         message:
-          'Please enter a destination name.',
-      })
-      return
+          "Please enter a destination name.",
+      });
+      return;
     }
 
     if (!form.description.trim()) {
       showToast({
-        title: 'Description required',
+        title: "Description required",
         message:
-          'Please enter a destination description.',
-      })
-      return
+          "Please enter a destination description.",
+      });
+      return;
     }
 
     if (editing) {
@@ -251,271 +349,294 @@ export default function AdminDashboard() {
             ? {
                 ...item,
                 ...form,
-                lastUpdated: 'Just now',
+                lastUpdated: "Just now",
               }
             : item
         )
-      )
+      );
 
       showToast({
-        title: 'Successfully updated',
+        title: "Successfully updated",
         message: `${form.name} successfully updated.`,
-      })
+      });
     } else {
       const newDestination = {
         ...form,
         id: `custom-${Date.now()}`,
         verified: false,
-        status: 'Pending Review',
-        lastUpdated: 'Just now',
-      }
+        status: "Pending Review",
+        lastUpdated: "Just now",
+      };
 
       setItems((previous) => [
         newDestination,
         ...previous,
-      ])
+      ]);
 
       showToast({
-        title: 'Successfully added',
+        title: "Successfully added",
         message: `${form.name} successfully added.`,
-      })
+      });
     }
 
-    setEditing(null)
-    setForm(blank)
-    setView('destinations')
-  }
+    setEditing(null);
+    setForm(blank);
+    changeView("destinations");
+  };
 
+  // ==========================================================
   // DELETE
+  // ==========================================================
 
   const remove = () => {
-    if (!deleteTarget) return
+    if (!deleteTarget) return;
 
-    const name = deleteTarget.name
+    const name = deleteTarget.name;
 
     setItems((previous) =>
       previous.filter(
-        (item) => item.id !== deleteTarget.id
+        (item) =>
+          item.id !== deleteTarget.id
       )
-    )
+    );
 
-    setDeleteTarget(null)
+    setDeleteTarget(null);
 
     showToast({
-      title: 'Successfully deleted',
+      title: "Successfully deleted",
       message: `${name} successfully deleted.`,
-    })
-  }
+    });
+  };
 
-//  EDIT
+  // ==========================================================
+  // EDIT
+  // ==========================================================
 
   const edit = (destination) => {
-    setEditing(destination.id)
+    setEditing(destination.id);
 
     setForm({
       ...blank,
       ...destination,
-    })
+    });
 
-    setView('form')
-  }
+    changeView("form");
+  };
 
-//  STATS
+  // ==========================================================
+  // STATS
+  // ==========================================================
 
   const stats = [
     [
-      'Total States',
+      "Total States",
       states.filter(
-        (state) => state.type === 'State'
+        (state) =>
+          state.type === "State"
       ).length,
       Map,
     ],
+
     [
-      'Total UTs',
+      "Total UTs",
       states.filter(
-        (state) => state.type === 'UT'
+        (state) => state.type === "UT"
       ).length,
       Map,
     ],
+
     [
-      'Total Destinations',
+      "Total Destinations",
       items.length,
       Tags,
     ],
+
     [
-      'Verified',
+      "Verified",
       items.filter(
-        (item) => item.status === 'Verified'
+        (item) =>
+          item.status === "Verified"
       ).length,
       CheckCircle2,
     ],
-  ]
+  ];
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-navy-950">
       <div className="flex min-h-screen">
 
-{/* {SIDEBAR/} */}
+        {/* =====================================================
+            SIDEBAR
+        ===================================================== */}
 
-<aside
-  className={`
-    fixed inset-y-0 left-0 z-50
-    flex h-screen w-72 flex-col
-    bg-navy-900 p-5 text-white
-    shadow-2xl
-    transition-transform duration-200
-
-    md:translate-x-0
-
-    ${
-      sidebar
-        ? 'translate-x-0'
-        : '-translate-x-full'
-    }
-  `}
->
-  {/* {SIDEBAR HEADER/} */}
-
-  <div className="flex shrink-0 items-center justify-between">
-    <Link
-      to="/"
-      className="text-xl font-extrabold"
-    >
-      Travel
-      <span className="text-orange-400">
-        Bharat
-      </span>
-    </Link>
-
-    {/* Mobile Close Button */}
-
-    <button
-      type="button"
-      className="rounded-lg p-2 transition hover:bg-white/10 md:hidden"
-      onClick={() => setSidebar(false)}
-      aria-label="Close sidebar"
-    >
-      <X size={20} />
-    </button>
-  </div>
-
-  {/* Workspace Label */}
-
-  <p className="mt-1 shrink-0 text-xs text-white/45">
-    Admin workspace
-  </p>
-
-  {/* SIDEBAR NAVIGATION} */}
-
-  <nav className="mt-8 flex-1 overflow-y-auto pr-1">
-    <div className="grid gap-1">
-      {[
-        [
-          'dashboard',
-          'Dashboard',
-          LayoutDashboard,
-        ],
-
-        [
-          'destinations',
-          'Destinations',
-          Tags,
-        ],
-
-        [
-          'states',
-          'States',
-          Map,
-        ],
-
-        [
-          'categories',
-          'Categories',
-          Tags,
-        ],
-
-        [
-          'review',
-          'Content Review',
-          ClipboardCheck,
-        ],
-
-        [
-          'settings',
-          'Settings',
-          Settings,
-        ],
-      ].map(([id, label, Icon]) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => {
-            setView(id)
-            setSidebar(false)
-          }}
+        <aside
           className={`
-            flex w-full items-center gap-3
-            rounded-xl px-4 py-3
-            text-left text-sm font-semibold
-            transition-all duration-200
-
+            fixed inset-y-0 left-0 z-50
+            flex h-screen w-72 flex-col
+            bg-navy-900 p-5 text-white
+            shadow-2xl
+            transition-transform duration-200
+            md:translate-x-0
             ${
-              view === id
-                ? 'bg-white/10 text-orange-300 shadow-sm'
-                : 'text-white/65 hover:bg-white/5 hover:text-white'
+              sidebar
+                ? "translate-x-0"
+                : "-translate-x-full"
             }
           `}
         >
-          <Icon
-            size={18}
-            className="shrink-0"
-          />
+          {/* SIDEBAR HEADER */}
 
-          <span>
-            {label}
-          </span>
-        </button>
-      ))}
-    </div>
-  </nav>
+          <div className="flex shrink-0 items-center justify-between">
+            <Link
+              to="/"
+              className="text-xl font-extrabold"
+            >
+              Travel
+              <span className="text-orange-400">
+                Bharat
+              </span>
+            </Link>
 
-  {/* {/SIDEBAR BOTTOM CARD} */}
+            <button
+              type="button"
+              className="rounded-lg p-2 transition hover:bg-white/10 md:hidden"
+              onClick={() =>
+                setSidebar(false)
+              }
+              aria-label="Close sidebar"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-  <div className="mt-4 shrink-0 rounded-2xl bg-white/5 p-4">
-    <p className="text-xs font-bold">
-      TravelBharat Admin
-    </p>
+          {/* WORKSPACE LABEL */}
 
-    <p className="mt-1 text-[11px] leading-5 text-white/50">
-      Tourism content workspace
-    </p>
-  </div>
-</aside>
+          <p className="mt-1 shrink-0 text-xs text-white/45">
+            Admin workspace
+          </p>
 
-        {/* {MOBILE OVERLAY} */}
+          {/* SIDEBAR NAVIGATION */}
+
+          <nav className="mt-8 flex-1 overflow-y-auto pr-1">
+            <div className="grid gap-1">
+              {[
+                [
+                  "dashboard",
+                  "Dashboard",
+                  LayoutDashboard,
+                ],
+
+                [
+                  "destinations",
+                  "Destinations",
+                  Tags,
+                ],
+
+                [
+                  "states",
+                  "States",
+                  Map,
+                ],
+
+                [
+                  "categories",
+                  "Categories",
+                  Tags,
+                ],
+
+                [
+                  "review",
+                  "Content Review",
+                  ClipboardCheck,
+                ],
+
+                [
+                  "settings",
+                  "Settings",
+                  Settings,
+                ],
+              ].map(
+                ([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() =>
+                      changeView(id)
+                    }
+                    className={`
+                      flex w-full items-center gap-3
+                      rounded-xl px-4 py-3
+                      text-left text-sm font-semibold
+                      transition-all duration-200
+                      ${
+                        view === id
+                          ? "bg-white/10 text-orange-300 shadow-sm"
+                          : "text-white/65 hover:bg-white/5 hover:text-white"
+                      }
+                    `}
+                  >
+                    <Icon
+                      size={18}
+                      className="shrink-0"
+                    />
+
+                    <span>{label}</span>
+                  </button>
+                )
+              )}
+            </div>
+          </nav>
+
+          {/* SIDEBAR BOTTOM CARD */}
+
+          <div className="mt-4 shrink-0 rounded-2xl bg-white/5 p-4">
+            <p className="text-xs font-bold">
+              TravelBharat Admin
+            </p>
+
+            <p className="mt-1 text-[11px] leading-5 text-white/50">
+              Tourism content workspace
+            </p>
+          </div>
+        </aside>
+
+        {/* =====================================================
+            MOBILE OVERLAY
+        ===================================================== */}
 
         {sidebar && (
           <button
             type="button"
             className="fixed inset-0 z-40 bg-black/40 md:hidden"
-            onClick={() => setSidebar(false)}
+            onClick={() =>
+              setSidebar(false)
+            }
             aria-label="Close sidebar"
           />
         )}
 
-        {/* { MAIN} */}
+        {/* =====================================================
+            MAIN
+        ===================================================== */}
 
         <main className="min-w-0 flex-1 md:ml-72">
 
           {/* HEADER */}
 
           <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-5 backdrop-blur dark:border-white/10 dark:bg-navy-950/95 md:px-8">
+
             <div className="flex items-center gap-3">
 
               <button
                 type="button"
                 className="md:hidden"
-                onClick={() => setSidebar(true)}
+                onClick={() =>
+                  setSidebar(true)
+                }
                 aria-label="Open sidebar"
               >
                 <Menu size={21} />
@@ -544,56 +665,68 @@ export default function AdminDashboard() {
 
           <div className="p-5 md:p-8">
 
-            {view === 'dashboard' && (
+            {/* DASHBOARD */}
+
+            {view === "dashboard" && (
               <Dashboard
                 stats={stats}
                 items={items}
-                setView={setView}
+                setView={changeView}
               />
             )}
 
-            {view === 'destinations' && (
+            {/* DESTINATIONS */}
+
+            {view === "destinations" && (
               <Destinations
                 filtered={filtered}
                 query={query}
                 setQuery={setQuery}
                 edit={edit}
                 remove={(destination) =>
-                  setDeleteTarget(destination)
+                  setDeleteTarget(
+                    destination
+                  )
                 }
-                setView={setView}
+                setView={changeView}
                 setItems={setItems}
                 showToast={showToast}
               />
             )}
 
-            {view === 'form' && (
+            {/* FORM */}
+
+            {view === "form" && (
               <DestinationForm
                 form={form}
                 setForm={setForm}
                 save={save}
                 editing={editing}
                 cancel={() => {
-                  setEditing(null)
-                  setForm(blank)
-                  setView('destinations')
+                  setEditing(null);
+                  setForm(blank);
+                  changeView(
+                    "destinations"
+                  );
                 }}
               />
             )}
 
-            {/* RESTORED STATES */}
+            {/* STATES */}
 
-            {view === 'states' && (
+            {view === "states" && (
               <StatesPanel />
             )}
 
-            {/* RESTORED CATEGORIES */}
+            {/* CATEGORIES */}
 
-            {view === 'categories' && (
+            {view === "categories" && (
               <CategoriesPanel />
             )}
 
-            {view === 'review' && (
+            {/* REVIEW */}
+
+            {view === "review" && (
               <Review
                 items={items}
                 setItems={setItems}
@@ -601,7 +734,9 @@ export default function AdminDashboard() {
               />
             )}
 
-            {view === 'settings' && (
+            {/* SETTINGS */}
+
+            {view === "settings" && (
               <SettingsPanel
                 items={items}
                 setItems={setItems}
@@ -612,7 +747,9 @@ export default function AdminDashboard() {
         </main>
       </div>
 
-      {/* {STACKED TOAST NOTIFICATIONS/} */}
+      {/* =======================================================
+          STACKED TOAST NOTIFICATIONS
+      ======================================================= */}
 
       <div className="pointer-events-none fixed right-4 top-4 z-[100] flex w-[min(390px,calc(100vw-2rem))] flex-col gap-3">
         {toasts.map((toast) => (
@@ -630,7 +767,9 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* {DELETE MODAL} */}
+      {/* =======================================================
+          DELETE MODAL
+      ======================================================= */}
 
       {deleteTarget && (
         <DeleteModal
@@ -642,10 +781,12 @@ export default function AdminDashboard() {
         />
       )}
     </div>
-  )
+  );
 }
 
+// ============================================================
 // SUCCESS TOAST
+// ============================================================
 
 function SuccessToast({ toast, onClose }) {
   return (
@@ -663,6 +804,7 @@ function SuccessToast({ toast, onClose }) {
           </span>
 
           <div className="min-w-0 flex-1">
+
             <p className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
               {toast.title}
             </p>
@@ -670,6 +812,7 @@ function SuccessToast({ toast, onClose }) {
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-300">
               {toast.message}
             </p>
+
           </div>
 
           <button
@@ -680,15 +823,18 @@ function SuccessToast({ toast, onClose }) {
           >
             <X size={15} />
           </button>
+
         </div>
 
         <div className="h-1 bg-emerald-500" />
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // DELETE MODAL
+// ============================================================
 
 function DeleteModal({
   destination,
@@ -703,9 +849,10 @@ function DeleteModal({
       aria-labelledby="delete-title"
       onMouseDown={(event) => {
         if (
-          event.target === event.currentTarget
+          event.target ===
+          event.currentTarget
         ) {
-          onCancel()
+          onCancel();
         }
       }}
     >
@@ -725,7 +872,7 @@ function DeleteModal({
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-300">
-            Are you sure you want to remove{' '}
+            Are you sure you want to remove{" "}
             <span className="font-bold text-navy-900 dark:text-white">
               {destination.name}
             </span>
@@ -750,51 +897,63 @@ function DeleteModal({
               <Trash2 size={16} />
               Delete Destination
             </button>
+
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // DASHBOARD
+// ============================================================
 
 function Dashboard({
   stats,
   items,
   setView,
 }) {
-  const total = Math.max(items.length, 1)
+  const total = Math.max(
+    items.length,
+    1
+  );
 
   const verificationData = [
     [
-      'Verified',
-      items.filter(
-        (item) => item.status === 'Verified'
-      ).length,
-      'bg-emerald-500',
-    ],
-    [
-      'Pending Review',
+      "Verified",
       items.filter(
         (item) =>
-          item.status === 'Pending Review'
+          item.status === "Verified"
       ).length,
-      'bg-amber-500',
+      "bg-emerald-500",
     ],
+
     [
-      'Draft',
+      "Pending Review",
       items.filter(
-        (item) => item.status === 'Draft'
+        (item) =>
+          item.status ===
+          "Pending Review"
       ).length,
-      'bg-slate-400',
+      "bg-amber-500",
     ],
-  ]
+
+    [
+      "Draft",
+      items.filter(
+        (item) =>
+          item.status === "Draft"
+      ).length,
+      "bg-slate-400",
+    ],
+  ];
 
   return (
     <div>
 
       <div className="mb-8">
+
         <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
           Overview
         </p>
@@ -806,15 +965,20 @@ function Dashboard({
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           A quick snapshot of your TravelBharat tourism catalogue.
         </p>
+
       </div>
 
+      {/* STATS */}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
         {stats.map(
           ([label, number, Icon]) => (
             <div
               key={label}
               className="card p-5"
             >
+
               <div className="flex items-center justify-between">
 
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-orange-50 text-orange-500 dark:bg-orange-500/10">
@@ -824,6 +988,7 @@ function Dashboard({
                 <span className="text-xs font-bold text-emerald-600">
                   +8.2%
                 </span>
+
               </div>
 
               <div className="mt-5 text-3xl font-extrabold text-navy-900 dark:text-white">
@@ -833,16 +998,23 @@ function Dashboard({
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 {label}
               </p>
+
             </div>
           )
         )}
+
       </div>
 
+      {/* LOWER DASHBOARD */}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+
+        {/* CONTENT ACTIVITY */}
 
         <div className="card p-6">
 
           <div className="flex items-center justify-between">
+
             <h2 className="font-extrabold text-navy-900 dark:text-white">
               Content Activity
             </h2>
@@ -850,15 +1022,19 @@ function Dashboard({
             <button
               type="button"
               onClick={() =>
-                setView('destinations')
+                setView(
+                  "destinations"
+                )
               }
               className="text-xs font-bold text-orange-600"
             >
               Manage
             </button>
+
           </div>
 
           <div className="mt-7 flex h-44 items-end gap-3">
+
             {[
               35,
               52,
@@ -883,6 +1059,7 @@ function Dashboard({
                 />
               )
             )}
+
           </div>
 
           <div className="mt-3 flex justify-between text-[10px] text-slate-400">
@@ -890,7 +1067,10 @@ function Dashboard({
             <span>Jun</span>
             <span>Dec</span>
           </div>
+
         </div>
+
+        {/* VERIFICATION */}
 
         <div className="card p-6">
 
@@ -899,6 +1079,7 @@ function Dashboard({
           </h2>
 
           <div className="mt-6 grid gap-4">
+
             {verificationData.map(
               ([label, number, bar]) => (
                 <div key={label}>
@@ -909,28 +1090,35 @@ function Dashboard({
                   </div>
 
                   <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-white/10">
+
                     <div
                       className={`h-2 rounded-full ${bar}`}
                       style={{
                         width: `${Math.max(
                           8,
-                          (number / total) * 100
+                          (number /
+                            total) *
+                            100
                         )}%`,
                       }}
                     />
+
                   </div>
 
                 </div>
               )
             )}
+
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // DESTINATIONS
+// ============================================================
 
 function Destinations({
   filtered,
@@ -944,8 +1132,9 @@ function Destinations({
 }) {
   const status = (id, value) => {
     const item = filtered.find(
-      (destination) => destination.id === id
-    )
+      (destination) =>
+        destination.id === id
+    );
 
     setItems((previous) =>
       previous.map((destination) =>
@@ -953,24 +1142,32 @@ function Destinations({
           ? {
               ...destination,
               status: value,
-              verified: value === 'Verified',
-              lastUpdated: 'Just now',
+              verified:
+                value === "Verified",
+              lastUpdated:
+                "Just now",
             }
           : destination
       )
-    )
+    );
 
     showToast({
-      title: 'Successfully updated',
-      message: `${item?.name || 'Destination'} successfully updated.`,
-    })
-  }
+      title: "Successfully updated",
+      message: `${
+        item?.name || "Destination"
+      } successfully updated.`,
+    });
+  };
 
   return (
     <div>
+
       {/* HEADER */}
+
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+
         <div>
+
           <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
             Content
           </p>
@@ -982,23 +1179,32 @@ function Destinations({
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Manage tourism destinations across India.
           </p>
+
         </div>
 
         <button
           type="button"
-          onClick={() => setView('form')}
+          onClick={() =>
+            setView("form")
+          }
           className="btn-primary w-full sm:w-auto"
         >
           <Plus size={17} />
           Add Destination
         </button>
+
       </div>
 
       {/* MAIN CARD */}
+
       <div className="card overflow-hidden">
+
         {/* SEARCH */}
+
         <div className="border-b border-slate-200 p-4 dark:border-white/10">
+
           <div className="relative w-full sm:max-w-md">
+
             <Search
               className="absolute left-3 top-3 text-slate-400"
               size={17}
@@ -1007,20 +1213,27 @@ function Destinations({
             <input
               className="input pl-10"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) =>
+                setQuery(
+                  event.target.value
+                )
+              }
               placeholder="Search destinations..."
             />
+
           </div>
         </div>
 
-        {/* ================================================= */}
         {/* DESKTOP TABLE */}
-        {/* ================================================= */}
 
         <div className="hidden overflow-x-auto md:block">
+
           <table className="w-full text-left text-sm">
+
             <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-white/5">
+
               <tr>
+
                 <th className="px-5 py-4">
                   Destination
                 </th>
@@ -1044,254 +1257,379 @@ function Destinations({
                 <th className="pr-5 text-right">
                   Actions
                 </th>
+
               </tr>
+
             </thead>
 
             <tbody className="divide-y divide-slate-100 dark:divide-white/10">
-              {filtered.map((destination) => (
-                <tr
-                  key={destination.id}
-                  className="transition hover:bg-slate-50/70 dark:hover:bg-white/5"
-                >
-                  {/* DESTINATION */}
-                  <td className="px-5 py-4">
-                    <div className="flex min-w-[280px] items-center gap-3">
-                      <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
-                        <img
-                          src={getDestinationImage(destination)}
-                          alt={destination.name}
-                          className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                          loading="lazy"
-                          onError={handleImageError}
-                        />
+
+              {filtered.map(
+                (destination) => (
+                  <tr
+                    key={
+                      destination.id
+                    }
+                    className="transition hover:bg-slate-50/70 dark:hover:bg-white/5"
+                  >
+
+                    {/* DESTINATION */}
+
+                    <td className="px-5 py-4">
+
+                      <div className="flex min-w-[280px] items-center gap-3">
+
+                        <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
+
+                          <img
+                            src={getDestinationImage(
+                              destination
+                            )}
+                            alt={
+                              destination.name
+                            }
+                            className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                            loading="lazy"
+                            onError={
+                              handleImageError
+                            }
+                          />
+
+                        </div>
+
+                        <div className="min-w-0">
+
+                          <p className="truncate font-bold text-navy-900 dark:text-white">
+                            {
+                              destination.name
+                            }
+                          </p>
+
+                          <p className="mt-1 truncate text-[11px] font-normal text-slate-400">
+                            {
+                              destination.city ||
+                              "India"
+                            }
+                          </p>
+
+                        </div>
                       </div>
+                    </td>
 
-                      <div className="min-w-0">
-                        <p className="truncate font-bold text-navy-900 dark:text-white">
-                          {destination.name}
-                        </p>
+                    {/* STATE */}
 
-                        <p className="mt-1 truncate text-[11px] font-normal text-slate-400">
-                          {destination.city || 'India'}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* STATE */}
-                  <td className="text-slate-500 dark:text-slate-400">
-                    {destination.state}
-                  </td>
-
-                  {/* CATEGORY */}
-                  <td>
-                    <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
-                      {destination.category}
-                    </span>
-                  </td>
-
-                  {/* STATUS */}
-                  <td>
-                    <select
-                      value={destination.status}
-                      onChange={(event) =>
-                        status(
-                          destination.id,
-                          event.target.value
-                        )
+                    <td className="text-slate-500 dark:text-slate-400">
+                      {
+                        destination.state
                       }
-                      className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
-                    >
-                      <option value="Verified">
-                        Verified
-                      </option>
+                    </td>
 
-                      <option value="Pending Review">
-                        Pending Review
-                      </option>
+                    {/* CATEGORY */}
 
-                      <option value="Draft">
-                        Draft
-                      </option>
-                    </select>
-                  </td>
+                    <td>
 
-                  {/* UPDATED */}
-                  <td className="text-xs text-slate-500 dark:text-slate-400">
-                    {destination.lastUpdated}
-                  </td>
+                      <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+                        {
+                          destination.category
+                        }
+                      </span>
 
-                  {/* ACTIONS */}
-                  <td className="pr-5">
-                    <div className="flex justify-end gap-1">
-                      <Link
-                        to={`/destination/${destination.id}`}
-                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
-                        aria-label={`View ${destination.name}`}
-                        title="View destination"
+                    </td>
+
+                    {/* STATUS */}
+
+                    <td>
+
+                      <select
+                        value={
+                          destination.status
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          status(
+                            destination.id,
+                            event.target
+                              .value
+                          )
+                        }
+                        className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
                       >
-                        <Eye size={15} />
-                      </Link>
 
-                      <button
-                        type="button"
-                        onClick={() => edit(destination)}
-                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
-                        aria-label={`Edit ${destination.name}`}
-                        title="Edit destination"
-                      >
-                        <Pencil size={15} />
-                      </button>
+                        <option value="Verified">
+                          Verified
+                        </option>
 
-                      <button
-                        type="button"
-                        onClick={() => remove(destination)}
-                        className="grid h-8 w-8 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
-                        aria-label={`Delete ${destination.name}`}
-                        title="Delete destination"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <option value="Pending Review">
+                          Pending Review
+                        </option>
+
+                        <option value="Draft">
+                          Draft
+                        </option>
+
+                      </select>
+
+                    </td>
+
+                    {/* UPDATED */}
+
+                    <td className="text-xs text-slate-500 dark:text-slate-400">
+                      {
+                        destination.lastUpdated
+                      }
+                    </td>
+
+                    {/* ACTIONS */}
+
+                    <td className="pr-5">
+
+                      <div className="flex justify-end gap-1">
+
+                        {/* VIEW */}
+
+                        <Link
+                          to={`/destination/${destination.id}?from=admin`}
+                          className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+                          aria-label={`View ${destination.name}`}
+                          title="View destination"
+                        >
+                          <Eye size={15} />
+                        </Link>
+
+                        {/* EDIT */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            edit(
+                              destination
+                            )
+                          }
+                          className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+                          aria-label={`Edit ${destination.name}`}
+                          title="Edit destination"
+                        >
+                          <Pencil size={15} />
+                        </button>
+
+                        {/* DELETE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            remove(
+                              destination
+                            )
+                          }
+                          className="grid h-8 w-8 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                          aria-label={`Delete ${destination.name}`}
+                          title="Delete destination"
+                        >
+                          <Trash2
+                            size={15}
+                          />
+                        </button>
+
+                      </div>
+                    </td>
+
+                  </tr>
+                )
+              )}
+
             </tbody>
           </table>
         </div>
 
-        {/* ================================================= */}
-        {/* MOBILE DESTINATION CARDS */}
-        {/* ================================================= */}
+        {/* MOBILE CARDS */}
 
         <div className="grid gap-3 p-3 md:hidden">
-          {filtered.map((destination) => (
-            <div
-              key={destination.id}
-              className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-navy-900"
-            >
-              {/* IMAGE + NAME */}
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
-                  <img
-                    src={getDestinationImage(destination)}
-                    alt={destination.name}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    onError={handleImageError}
-                  />
+
+          {filtered.map(
+            (destination) => (
+              <div
+                key={
+                  destination.id
+                }
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-navy-900"
+              >
+
+                {/* IMAGE + NAME */}
+
+                <div className="flex min-w-0 items-center gap-3">
+
+                  <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
+
+                    <img
+                      src={getDestinationImage(
+                        destination
+                      )}
+                      alt={
+                        destination.name
+                      }
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      onError={
+                        handleImageError
+                      }
+                    />
+
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+
+                    <h3 className="truncate text-sm font-extrabold text-navy-900 dark:text-white">
+                      {
+                        destination.name
+                      }
+                    </h3>
+
+                    <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+                      {
+                        destination.city ||
+                        "India"
+                      }
+                    </p>
+
+                    <p className="mt-1 truncate text-[11px] text-slate-400">
+                      {
+                        destination.state
+                      }
+                    </p>
+
+                  </div>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-extrabold text-navy-900 dark:text-white">
-                    {destination.name}
-                  </h3>
+                {/* CATEGORY + STATUS */}
 
-                  <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
-                    {destination.city || 'India'}
+                <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
+
+                  <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+                    {
+                      destination.category
+                    }
+                  </span>
+
+                  <select
+                    value={
+                      destination.status
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      status(
+                        destination.id,
+                        event.target
+                          .value
+                      )
+                    }
+                    className="min-w-0 max-w-[150px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
+                    aria-label={`Status for ${destination.name}`}
+                  >
+
+                    <option value="Verified">
+                      Verified
+                    </option>
+
+                    <option value="Pending Review">
+                      Pending Review
+                    </option>
+
+                    <option value="Draft">
+                      Draft
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* UPDATED */}
+
+                <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
+
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    Updated
                   </p>
 
-                  <p className="mt-1 truncate text-[11px] text-slate-400">
-                    {destination.state}
+                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {
+                      destination.lastUpdated
+                    }
                   </p>
+
+                  {/* MOBILE ACTIONS */}
+
+                  <div className="mt-3 grid w-full grid-cols-3 gap-2">
+
+                    {/* VIEW */}
+
+                    <Link
+                      to={`/destination/${destination.id}?from=admin`}
+                      className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                      aria-label={`View ${destination.name}`}
+                      title="View destination"
+                    >
+                      <Eye size={16} />
+
+                      <span className="text-xs font-bold">
+                        View
+                      </span>
+                    </Link>
+
+                    {/* EDIT */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        edit(
+                          destination
+                        )
+                      }
+                      className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                      aria-label={`Edit ${destination.name}`}
+                      title="Edit destination"
+                    >
+                      <Pencil size={16} />
+
+                      <span className="text-xs font-bold">
+                        Edit
+                      </span>
+                    </button>
+
+                    {/* DELETE */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        remove(
+                          destination
+                        )
+                      }
+                      className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-red-100 text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:hover:border-red-500 dark:hover:bg-red-500 dark:hover:text-white"
+                      aria-label={`Delete ${destination.name}`}
+                      title="Delete destination"
+                    >
+                      <Trash2 size={16} />
+
+                      <span className="text-xs font-bold">
+                        Delete
+                      </span>
+                    </button>
+
+                  </div>
                 </div>
               </div>
+            )
+          )}
 
-              {/* CATEGORY + STATUS */}
-              <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
-                <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
-                  {destination.category}
-                </span>
-
-                <select
-                  value={destination.status}
-                  onChange={(event) =>
-                    status(
-                      destination.id,
-                      event.target.value
-                    )
-                  }
-                  className="min-w-0 max-w-[150px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
-                  aria-label={`Status for ${destination.name}`}
-                >
-                  <option value="Verified">
-                    Verified
-                  </option>
-
-                  <option value="Pending Review">
-                    Pending Review
-                  </option>
-
-                  <option value="Draft">
-                    Draft
-                  </option>
-                </select>
-              </div>
-
-              {/* UPDATED */}
-              <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  Updated
-                </p>
-
-                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                  {destination.lastUpdated}
-                </p>
-
-                {/* MOBILE ACTIONS */}
-                <div className="mt-3 grid w-full grid-cols-3 gap-2">
-                  {/* VIEW */}
-                  <Link
-                    to={`/destination/${destination.id}`}
-                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
-                    aria-label={`View ${destination.name}`}
-                    title="View destination"
-                  >
-                    <Eye size={16} />
-
-                    <span className="text-xs font-bold">
-                      View
-                    </span>
-                  </Link>
-
-                  {/* EDIT */}
-                  <button
-                    type="button"
-                    onClick={() => edit(destination)}
-                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
-                    aria-label={`Edit ${destination.name}`}
-                    title="Edit destination"
-                  >
-                    <Pencil size={16} />
-
-                    <span className="text-xs font-bold">
-                      Edit
-                    </span>
-                  </button>
-
-                  {/* DELETE */}
-                  <button
-                    type="button"
-                    onClick={() => remove(destination)}
-                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-red-100 text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:hover:border-red-500 dark:hover:bg-red-500 dark:hover:text-white"
-                    aria-label={`Delete ${destination.name}`}
-                    title="Delete destination"
-                  >
-                    <Trash2 size={16} />
-
-                    <span className="text-xs font-bold">
-                      Delete
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* EMPTY STATE */}
+
         {filtered.length === 0 && (
           <div className="p-12 text-center">
+
             <Search
               className="mx-auto text-slate-300"
               size={28}
@@ -1304,14 +1642,17 @@ function Destinations({
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Try another search term.
             </p>
+
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // DESTINATION FORM
+// ============================================================
 
 function DestinationForm({
   form,
@@ -1326,19 +1667,19 @@ function DestinationForm({
     props = {}
   ) => {
     const isTextarea =
-      props.type === 'textarea'
+      props.type === "textarea";
 
     const commonProps = {
       ...props,
-      value: form[key] ?? '',
+      value: form[key] ?? "",
       onChange: (event) =>
         setForm({
           ...form,
           [key]: event.target.value,
         }),
-    }
+    };
 
-    delete commonProps.type
+    delete commonProps.type;
 
     return (
       <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
@@ -1358,24 +1699,24 @@ function DestinationForm({
         )}
 
       </label>
-    )
-  }
+    );
+  };
 
   const imageUrls = Array.isArray(
     form.images
   )
     ? form.images
-    : [form.images || '']
+    : [form.images || ""];
 
   const setImageUrls = (value) => {
     setForm({
       ...form,
       images: value
-        .split('\n')
+        .split("\n")
         .map((item) => item.trim())
         .filter(Boolean),
-    })
-  }
+    });
+  };
 
   return (
     <div>
@@ -1395,7 +1736,10 @@ function DestinationForm({
         </p>
 
         <h1 className="mt-1 text-3xl font-extrabold text-navy-900 dark:text-white">
-          {editing ? 'Edit' : 'Add'} Destination
+          {editing
+            ? "Edit"
+            : "Add"}{" "}
+          Destination
         </h1>
 
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -1408,116 +1752,135 @@ function DestinationForm({
         >
 
           {field(
-            'name',
-            'Destination Name',
+            "name",
+            "Destination Name",
             {
               placeholder:
-                'e.g. Jaisalmer Fort',
+                "e.g. Jaisalmer Fort",
               required: true,
             }
           )}
 
           {field(
-            'city',
-            'City',
+            "city",
+            "City",
             {
-              placeholder: 'e.g. Jaipur',
+              placeholder:
+                "e.g. Jaipur",
             }
           )}
 
           <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
             State
 
             <select
-              value={form.state || ''}
+              value={form.state || ""}
               onChange={(event) =>
                 setForm({
                   ...form,
-                  state: event.target.value,
+                  state: event.target
+                    .value,
                 })
               }
               className="input"
             >
-              {states.map((state) => (
-                <option
-                  key={state.name}
-                  value={state.name}
-                >
-                  {state.name}
-                </option>
-              ))}
+
+              {states.map(
+                (state) => (
+                  <option
+                    key={state.name}
+                    value={state.name}
+                  >
+                    {state.name}
+                  </option>
+                )
+              )}
+
             </select>
           </label>
 
           <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
             Category
 
             <select
-              value={form.category || ''}
+              value={
+                form.category || ""
+              }
               onChange={(event) =>
                 setForm({
                   ...form,
-                  category: event.target.value,
+                  category:
+                    event.target
+                      .value,
                 })
               }
               className="input"
             >
+
               {categories.map(
                 (category) => (
                   <option
                     key={category.name}
-                    value={category.name}
+                    value={
+                      category.name
+                    }
                   >
                     {category.name}
                   </option>
                 )
               )}
+
             </select>
           </label>
 
           {field(
-            'description',
-            'Description',
+            "description",
+            "Description",
             {
-              type: 'textarea',
+              type: "textarea",
               placeholder:
-                'Write a short destination description...',
+                "Write a short destination description...",
               required: true,
             }
           )}
 
           {field(
-            'historicalSignificance',
-            'Historical Significance',
+            "historicalSignificance",
+            "Historical Significance",
             {
-              type: 'textarea',
+              type: "textarea",
               placeholder:
-                'Historical background...',
+                "Historical background...",
             }
           )}
 
           {field(
-            'bestTimeToVisit',
-            'Best Time To Visit'
+            "bestTimeToVisit",
+            "Best Time To Visit"
           )}
 
           <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
             Best Season
 
             <select
               value={
                 form.bestSeason ||
-                'Winter'
+                "Winter"
               }
               onChange={(event) =>
                 setForm({
                   ...form,
                   bestSeason:
-                    event.target.value,
+                    event.target
+                      .value,
                 })
               }
               className="input"
             >
+
               <option value="Winter">
                 Winter
               </option>
@@ -1533,37 +1896,40 @@ function DestinationForm({
               <option value="Year-round">
                 Year-round
               </option>
+
             </select>
           </label>
 
           {field(
-            'popularity',
-            'Popularity Score',
+            "popularity",
+            "Popularity Score",
             {
-              type: 'number',
+              type: "number",
               min: 0,
               max: 100,
             }
           )}
 
           {field(
-            'entryFee',
-            'Entry Fee'
+            "entryFee",
+            "Entry Fee"
           )}
 
           {field(
-            'timings',
-            'Opening Hours'
+            "timings",
+            "Opening Hours"
           )}
 
           {field(
-            'location',
-            'Location',
+            "location",
+            "Location",
             {
               placeholder:
-                'City, State, India',
+                "City, State, India",
             }
           )}
+
+          {/* GALLERY IMAGES */}
 
           <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200 sm:col-span-2">
 
@@ -1575,7 +1941,9 @@ function DestinationForm({
 
             <textarea
               className="input min-h-28 resize-y"
-              value={imageUrls.join('\n')}
+              value={imageUrls.join(
+                "\n"
+              )}
               onChange={(event) =>
                 setImageUrls(
                   event.target.value
@@ -1585,6 +1953,8 @@ function DestinationForm({
             />
 
           </label>
+
+          {/* FORM ACTIONS */}
 
           <div className="flex justify-end gap-3 sm:col-span-2">
 
@@ -1601,24 +1971,27 @@ function DestinationForm({
               className="btn-primary"
             >
               {editing
-                ? 'Save Changes'
-                : 'Add Destination'}
+                ? "Save Changes"
+                : "Add Destination"}
             </button>
 
           </div>
-
         </form>
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // STATES PANEL
+// ============================================================
 
 function StatesPanel() {
   return (
     <div>
+
       <div className="mb-6">
+
         <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
           Catalogue
         </p>
@@ -1630,9 +2003,11 @@ function StatesPanel() {
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Explore all Indian states and union territories available in the TravelBharat catalogue.
         </p>
+
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+
         {states.map((state) => (
           <Link
             key={state.name}
@@ -1641,6 +2016,7 @@ function StatesPanel() {
             )}`}
             className="card group overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
           >
+
             <div className="flex items-start justify-between gap-3">
 
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-orange-50 text-orange-500 transition group-hover:bg-orange-500 group-hover:text-white dark:bg-orange-500/10">
@@ -1648,7 +2024,8 @@ function StatesPanel() {
               </div>
 
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">
-                {state.type || 'State'}
+                {state.type ||
+                  "State"}
               </span>
 
             </div>
@@ -1658,7 +2035,9 @@ function StatesPanel() {
             </h3>
 
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Capital: {state.capital || 'Not available'}
+              Capital:{" "}
+              {state.capital ||
+                "Not available"}
             </p>
 
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/10">
@@ -1674,38 +2053,43 @@ function StatesPanel() {
             </div>
           </Link>
         ))}
+
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // CATEGORIES PANEL
+// ============================================================
 
 function CategoriesPanel() {
   const categoryIcons = {
-    Heritage: '🏛️',
-    Nature: '🌿',
-    Religious: '🛕',
-    Adventure: '🏔️',
-  }
+    Heritage: "🏛️",
+    Nature: "🌿",
+    Religious: "🛕",
+    Adventure: "🏔️",
+  };
 
   const categoryDescriptions = {
     Heritage:
-      'Discover forts, palaces, monuments and historic places across India.',
+      "Discover forts, palaces, monuments and historic places across India.",
 
     Nature:
-      'Explore mountains, waterfalls, beaches, forests and scenic landscapes.',
+      "Explore mountains, waterfalls, beaches, forests and scenic landscapes.",
 
     Religious:
-      'Visit temples, spiritual centres and culturally significant places.',
+      "Visit temples, spiritual centres and culturally significant places.",
 
     Adventure:
-      'Find thrilling destinations for trekking, rafting and outdoor experiences.',
-  }
+      "Find thrilling destinations for trekking, rafting and outdoor experiences.",
+  };
 
   return (
     <div>
+
       <div className="mb-6">
+
         <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
           Catalogue
         </p>
@@ -1715,70 +2099,81 @@ function CategoriesPanel() {
         </h1>
 
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Explore TravelBharat's tourism experience categories.
+          Explore TravelBharat&apos;s tourism experience categories.
         </p>
+
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category) => {
-          const icon =
-            categoryIcons[category.name] || '✦'
 
-          const description =
-            categoryDescriptions[
-              category.name
-            ] ||
-            'Explore amazing destinations across India.'
-
-          return (
-            <Link
-              key={category.name}
-              to={`/category/${encodeURIComponent(
+        {categories.map(
+          (category) => {
+            const icon =
+              categoryIcons[
                 category.name
-              )}`}
-              className="card group overflow-hidden p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="flex items-center justify-between">
+              ] || "✦";
 
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-50 text-2xl transition group-hover:scale-105 dark:bg-orange-500/10">
-                  {icon}
+            const description =
+              categoryDescriptions[
+                category.name
+              ] ||
+              "Explore amazing destinations across India.";
+
+            return (
+              <Link
+                key={category.name}
+                to={`/category/${encodeURIComponent(
+                  category.name
+                )}`}
+                className="card group overflow-hidden p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+
+                <div className="flex items-center justify-between">
+
+                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-50 text-2xl transition group-hover:scale-105 dark:bg-orange-500/10">
+                    {icon}
+                  </div>
+
+                  <span className="text-orange-500 transition group-hover:translate-x-1">
+                    →
+                  </span>
+
                 </div>
 
-                <span className="text-orange-500 transition group-hover:translate-x-1">
-                  →
-                </span>
+                <h3 className="mt-5 text-lg font-extrabold text-navy-900 dark:text-white">
+                  {category.name}
+                </h3>
 
-              </div>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  {description}
+                </p>
 
-              <h3 className="mt-5 text-lg font-extrabold text-navy-900 dark:text-white">
-                {category.name}
-              </h3>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/10">
 
-              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                {description}
-              </p>
+                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                    {category.count ||
+                      0}{" "}
+                    destinations
+                  </span>
 
-              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/10">
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    Explore
+                  </span>
 
-                <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
-                  {category.count || 0}{' '}
-                  destinations
-                </span>
+                </div>
+              </Link>
+            );
+          }
+        )}
 
-                <span className="text-[11px] font-semibold text-slate-400">
-                  Explore
-                </span>
-
-              </div>
-            </Link>
-          )
-        })}
       </div>
     </div>
-  )
+  );
 }
 
+// ============================================================
 // CONTENT REVIEW
+// ============================================================
 
 function Review({
   items,
@@ -1787,8 +2182,9 @@ function Review({
 }) {
   const pending = items.filter(
     (item) =>
-      item.status === 'Pending Review'
-  )
+      item.status ===
+      "Pending Review"
+  );
 
   const verify = (destination) => {
     setItems((previous) =>
@@ -1796,19 +2192,21 @@ function Review({
         item.id === destination.id
           ? {
               ...item,
-              status: 'Verified',
+              status: "Verified",
               verified: true,
-              lastUpdated: 'Just now',
+              lastUpdated:
+                "Just now",
             }
           : item
       )
-    )
+    );
 
     showToast({
-      title: 'Successfully verified',
+      title:
+        "Successfully verified",
       message: `${destination.name} successfully verified.`,
-    })
-  }
+    });
+  };
 
   return (
     <div>
@@ -1831,7 +2229,9 @@ function Review({
           pending.map(
             (destination) => (
               <div
-                key={destination.id}
+                key={
+                  destination.id
+                }
                 className="card overflow-hidden p-0"
               >
 
@@ -1840,17 +2240,21 @@ function Review({
                   {/* IMAGE */}
 
                   <div className="h-28 w-full shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-36 dark:bg-white/10">
+
                     <img
                       src={getDestinationImage(
                         destination
                       )}
-                      alt={destination.name}
+                      alt={
+                        destination.name
+                      }
                       className="h-full w-full object-cover transition duration-300 hover:scale-105"
                       loading="lazy"
                       onError={
                         handleImageError
                       }
                     />
+
                   </div>
 
                   {/* CONTENT */}
@@ -1860,7 +2264,9 @@ function Review({
                     <div className="flex flex-wrap items-center gap-2">
 
                       <h3 className="font-extrabold text-navy-900 dark:text-white">
-                        {destination.name}
+                        {
+                          destination.name
+                        }
                       </h3>
 
                       <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
@@ -1871,18 +2277,20 @@ function Review({
 
                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                       {destination.city ||
-                        'India'}
-                      {' • '}
+                        "India"}{" "}
+                      •{" "}
                       {destination.state ||
-                        'India'}
-                      {' • '}
+                        "India"}{" "}
+                      •{" "}
                       {destination.category ||
-                        'Travel'}
+                        "Travel"}
                     </p>
 
                     {destination.description && (
                       <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-500 dark:text-slate-300">
-                        {destination.description}
+                        {
+                          destination.description
+                        }
                       </p>
                     )}
 
@@ -1891,16 +2299,22 @@ function Review({
                   {/* ACTION */}
 
                   <div className="shrink-0">
+
                     <button
                       type="button"
                       onClick={() =>
-                        verify(destination)
+                        verify(
+                          destination
+                        )
                       }
                       className="btn-primary w-full sm:w-auto"
                     >
-                      <CheckCircle2 size={16} />
+                      <CheckCircle2
+                        size={16}
+                      />
                       Verify
                     </button>
+
                   </div>
 
                 </div>
@@ -1911,7 +2325,9 @@ function Review({
           <div className="card p-10 text-center">
 
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10">
-              <CheckCircle2 size={30} />
+              <CheckCircle2
+                size={30}
+              />
             </div>
 
             <p className="mt-4 text-sm font-bold text-navy-900 dark:text-white">
@@ -1927,98 +2343,118 @@ function Review({
 
       </div>
     </div>
-  )
+  );
 }
 
-//  SETTINGS
+// ============================================================
+// SETTINGS
+// ============================================================
 
 function SettingsPanel({
   items,
   setItems,
   showToast,
 }) {
-  const [defaultCategory, setDefaultCategory] =
-    useState('Heritage')
+  const [
+    defaultCategory,
+    setDefaultCategory,
+  ] = useState("Heritage");
 
-  const [defaultSeason, setDefaultSeason] =
-    useState('Winter')
+  const [
+    defaultSeason,
+    setDefaultSeason,
+  ] = useState("Winter");
 
-  const [itemsPerPage, setItemsPerPage] =
-    useState('20')
+  const [
+    itemsPerPage,
+    setItemsPerPage,
+  ] = useState("20");
 
-  const [autoVerify, setAutoVerify] =
-    useState(false)
+  const [
+    autoVerify,
+    setAutoVerify,
+  ] = useState(false);
 
-  const [showPopularity, setShowPopularity] =
-    useState(true)
+  const [
+    showPopularity,
+    setShowPopularity,
+  ] = useState(true);
 
-  const [resetModalOpen, setResetModalOpen] =
-    useState(false)
+  const [
+    resetModalOpen,
+    setResetModalOpen,
+  ] = useState(false);
+
+  // ESCAPE FOR RESET MODAL
 
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setResetModalOpen(false)
+      if (event.key === "Escape") {
+        setResetModalOpen(false);
       }
-    }
+    };
 
     if (resetModalOpen) {
       document.addEventListener(
-        'keydown',
+        "keydown",
         handleEscape
-      )
+      );
     }
 
     return () => {
       document.removeEventListener(
-        'keydown',
+        "keydown",
         handleEscape
-      )
-    }
-  }, [resetModalOpen])
+      );
+    };
+  }, [resetModalOpen]);
 
   const reset = () => {
-    setResetModalOpen(true)
-  }
+    setResetModalOpen(true);
+  };
 
   const confirmReset = () => {
-    setItems(initial)
+    setItems(initial);
 
     try {
       localStorage.setItem(
-        'tb-admin-items',
+        "tb-admin-items",
         JSON.stringify(initial)
-      )
+      );
     } catch {
       // Ignore localStorage errors
     }
 
-    setResetModalOpen(false)
+    setResetModalOpen(false);
 
     showToast({
-      title: 'Demo catalogue restored',
+      title:
+        "Demo catalogue restored",
       message:
-        'Your original TravelBharat demo catalogue has been restored successfully.',
-    })
-  }
+        "Your original TravelBharat demo catalogue has been restored successfully.",
+    });
+  };
 
   const savePreferences = () => {
     showToast({
-      title: 'Settings saved',
+      title: "Settings saved",
       message:
-        'Your workspace preferences have been updated.',
-    })
-  }
+        "Your workspace preferences have been updated.",
+    });
+  };
 
-  const verifiedCount = items.filter(
-    (item) =>
-      item.status === 'Verified'
-  ).length
+  const verifiedCount =
+    items.filter(
+      (item) =>
+        item.status === "Verified"
+    ).length;
 
-  const pendingCount = items.filter(
-    (item) =>
-      item.status === 'Pending Review'
-  ).length
+  const pendingCount =
+    items.filter(
+      (item) =>
+        item.status ===
+        "Pending Review"
+    ).length;
 
   return (
     <div>
@@ -2074,6 +2510,7 @@ function SettingsPanel({
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
 
               <div>
+
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
                   Display Name
                 </label>
@@ -2081,9 +2518,11 @@ function SettingsPanel({
                 <div className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-navy-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
                   TravelBharat Admin
                 </div>
+
               </div>
 
               <div>
+
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
                   Role
                 </label>
@@ -2091,6 +2530,7 @@ function SettingsPanel({
                 <div className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-navy-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
                   Content Administrator
                 </div>
+
               </div>
 
             </div>
@@ -2101,6 +2541,7 @@ function SettingsPanel({
           <div className="card p-6">
 
             <div>
+
               <h2 className="font-extrabold text-navy-900 dark:text-white">
                 Catalogue Preferences
               </h2>
@@ -2108,22 +2549,28 @@ function SettingsPanel({
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Customize the default settings for your tourism catalogue.
               </p>
+
             </div>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
 
               <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
                 Default Category
 
                 <select
-                  value={defaultCategory}
+                  value={
+                    defaultCategory
+                  }
                   onChange={(event) =>
                     setDefaultCategory(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   className="input"
                 >
+
                   <option value="Heritage">
                     Heritage
                   </option>
@@ -2139,21 +2586,27 @@ function SettingsPanel({
                   <option value="Adventure">
                     Adventure
                   </option>
+
                 </select>
               </label>
 
               <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
                 Default Season
 
                 <select
-                  value={defaultSeason}
+                  value={
+                    defaultSeason
+                  }
                   onChange={(event) =>
                     setDefaultSeason(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   className="input"
                 >
+
                   <option value="Winter">
                     Winter
                   </option>
@@ -2169,21 +2622,27 @@ function SettingsPanel({
                   <option value="Year-round">
                     Year-round
                   </option>
+
                 </select>
               </label>
 
               <label className="grid gap-1.5 text-xs font-bold text-navy-900 dark:text-slate-200">
+
                 Destinations Per Page
 
                 <select
-                  value={itemsPerPage}
+                  value={
+                    itemsPerPage
+                  }
                   onChange={(event) =>
                     setItemsPerPage(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   className="input"
                 >
+
                   <option value="10">
                     10 destinations
                   </option>
@@ -2199,6 +2658,7 @@ function SettingsPanel({
                   <option value="50">
                     50 destinations
                   </option>
+
                 </select>
               </label>
 
@@ -2243,24 +2703,29 @@ function SettingsPanel({
                   type="button"
                   onClick={() =>
                     setAutoVerify(
-                      (value) => !value
+                      (value) =>
+                        !value
                     )
                   }
                   className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
                     autoVerify
-                      ? 'bg-orange-500'
-                      : 'bg-slate-300 dark:bg-slate-700'
+                      ? "bg-orange-500"
+                      : "bg-slate-300 dark:bg-slate-700"
                   }`}
                   aria-label="Toggle auto verification"
-                  aria-pressed={autoVerify}
+                  aria-pressed={
+                    autoVerify
+                  }
                 >
+
                   <span
                     className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
                       autoVerify
-                        ? 'left-6'
-                        : 'left-1'
+                        ? "left-6"
+                        : "left-1"
                     }`}
                   />
+
                 </button>
 
               </div>
@@ -2285,26 +2750,29 @@ function SettingsPanel({
                   type="button"
                   onClick={() =>
                     setShowPopularity(
-                      (value) => !value
+                      (value) =>
+                        !value
                     )
                   }
                   className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
                     showPopularity
-                      ? 'bg-orange-500'
-                      : 'bg-slate-300 dark:bg-slate-700'
+                      ? "bg-orange-500"
+                      : "bg-slate-300 dark:bg-slate-700"
                   }`}
                   aria-label="Toggle popularity scores"
                   aria-pressed={
                     showPopularity
                   }
                 >
+
                   <span
                     className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
                       showPopularity
-                        ? 'left-6'
-                        : 'left-1'
+                        ? "left-6"
+                        : "left-1"
                     }`}
                   />
+
                 </button>
 
               </div>
@@ -2313,7 +2781,9 @@ function SettingsPanel({
 
             <button
               type="button"
-              onClick={savePreferences}
+              onClick={
+                savePreferences
+              }
               className="btn-primary mt-5"
             >
               Save Preferences
@@ -2354,28 +2824,38 @@ function SettingsPanel({
 
               <OverviewRow
                 label="Destinations"
-                value={items.length}
+                value={
+                  items.length
+                }
               />
 
               <OverviewRow
                 label="States & UTs"
-                value={states.length}
+                value={
+                  states.length
+                }
               />
 
               <OverviewRow
                 label="Categories"
-                value={categories.length}
+                value={
+                  categories.length
+                }
               />
 
               <OverviewRow
                 label="Verified"
-                value={verifiedCount}
+                value={
+                  verifiedCount
+                }
                 valueClass="text-emerald-600 dark:text-emerald-400"
               />
 
               <OverviewRow
                 label="Pending Review"
-                value={pendingCount}
+                value={
+                  pendingCount
+                }
                 valueClass="text-amber-600 dark:text-amber-400"
               />
 
@@ -2454,7 +2934,6 @@ function SettingsPanel({
 
             </div>
           </div>
-
         </div>
       </div>
 
@@ -2471,7 +2950,9 @@ function SettingsPanel({
               event.target ===
               event.currentTarget
             ) {
-              setResetModalOpen(false)
+              setResetModalOpen(
+                false
+              );
             }
           }}
         >
@@ -2482,7 +2963,9 @@ function SettingsPanel({
               <button
                 type="button"
                 onClick={() =>
-                  setResetModalOpen(false)
+                  setResetModalOpen(
+                    false
+                  )
                 }
                 className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
                 aria-label="Close reset catalogue dialog"
@@ -2491,7 +2974,9 @@ function SettingsPanel({
               </button>
 
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400">
-                <AlertTriangle size={27} />
+                <AlertTriangle
+                  size={27}
+                />
               </div>
 
               <h2
@@ -2518,6 +3003,7 @@ function SettingsPanel({
                       size={16}
                       className="mt-0.5 shrink-0 text-orange-500"
                     />
+
                     <span>
                       Current destination changes
                     </span>
@@ -2528,6 +3014,7 @@ function SettingsPanel({
                       size={16}
                       className="mt-0.5 shrink-0 text-orange-500"
                     />
+
                     <span>
                       Added or deleted destinations
                     </span>
@@ -2538,6 +3025,7 @@ function SettingsPanel({
                       size={16}
                       className="mt-0.5 shrink-0 text-orange-500"
                     />
+
                     <span>
                       Destination status changes
                     </span>
@@ -2548,6 +3036,7 @@ function SettingsPanel({
                       size={16}
                       className="mt-0.5 shrink-0 text-orange-500"
                     />
+
                     <span>
                       Saved catalogue data in this browser
                     </span>
@@ -2574,7 +3063,9 @@ function SettingsPanel({
                 <button
                   type="button"
                   onClick={() =>
-                    setResetModalOpen(false)
+                    setResetModalOpen(
+                      false
+                    )
                   }
                   className="btn-secondary w-full sm:w-auto"
                 >
@@ -2583,10 +3074,14 @@ function SettingsPanel({
 
                 <button
                   type="button"
-                  onClick={confirmReset}
+                  onClick={
+                    confirmReset
+                  }
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition hover:-translate-y-0.5 hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-500/20 sm:w-auto"
                 >
-                  <CheckCircle2 size={16} />
+                  <CheckCircle2
+                    size={16}
+                  />
                   Reset Catalogue
                 </button>
 
@@ -2597,15 +3092,18 @@ function SettingsPanel({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-//  OVERVIEW ROW
+// ============================================================
+// OVERVIEW ROW
+// ============================================================
 
 function OverviewRow({
   label,
   value,
-  valueClass = 'text-navy-900 dark:text-white',
+  valueClass =
+    "text-navy-900 dark:text-white",
 }) {
   return (
     <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4 dark:bg-white/5">
@@ -2621,5 +3119,5 @@ function OverviewRow({
       </span>
 
     </div>
-  )
+  );
 }

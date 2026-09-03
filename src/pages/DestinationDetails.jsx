@@ -1,26 +1,30 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
   ExternalLink,
   CheckCircle2,
   MapPinned,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { destinations } from '../data/destinations'
-import ImageGallery from '../components/ImageGallery'
-import InfoCard from '../components/InfoCard'
-import DestinationCard from '../components/DestinationCard'
-import SEO from '../components/SEO'
+import { destinations } from "../data/destinations";
+import ImageGallery from "../components/ImageGallery";
+import InfoCard from "../components/InfoCard";
+import DestinationCard from "../components/DestinationCard";
+import SEO from "../components/SEO";
 
 export default function DestinationDetails() {
-  const { destinationId } = useParams()
+  const { destinationId } = useParams();
+
+  // Check whether this page was opened from Admin Panel
+  const [searchParams] = useSearchParams();
+  const fromAdmin = searchParams.get("from") === "admin";
 
   const destination = destinations.find(
     (item) => item.id === destinationId
-  )
+  );
 
-  /* Destination Not Found */
+  // Destination Not Found
   if (!destination) {
     return (
       <>
@@ -39,25 +43,29 @@ export default function DestinationDetails() {
           </p>
 
           <Link
-            to="/explore"
+            to={fromAdmin ? "/admin?view=destinations" : "/explore"}
             className="btn-primary mt-6 inline-flex"
           >
-            Explore India
+            {fromAdmin ? "Back to Destinations" : "Explore India"}
             <ArrowRight size={16} />
           </Link>
         </div>
       </>
-    )
+    );
   }
 
-  /* Nearby Attractions */
+  // Nearby Attractions
   const nearby = (destination.nearbyAttractions || [])
     .map((id) => destinations.find((item) => item.id === id))
-    .filter(Boolean)
+    .filter(Boolean);
+
+  // Google Maps URL
+  const mapQuery =
+    destination.location || `${destination.name}, ${destination.city}`;
 
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    destination.location || `${destination.name}, ${destination.city}`
-  )}`
+    mapQuery
+  )}`;
 
   return (
     <>
@@ -70,13 +78,23 @@ export default function DestinationDetails() {
       <div className="bg-white dark:bg-navy-950">
         {/* Back Navigation */}
         <div className="container-page pt-6 sm:pt-8">
-          <Link
-            to="/explore"
-            className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-orange-500 dark:text-slate-400"
-          >
-            <ArrowLeft size={16} />
-            Back to Explore
-          </Link>
+          {fromAdmin ? (
+            <Link
+              to="/admin?view=destinations"
+              className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-orange-500 dark:text-slate-400"
+            >
+              <ArrowLeft size={16} />
+              Back to Destinations
+            </Link>
+          ) : (
+            <Link
+              to="/explore"
+              className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-orange-500 dark:text-slate-400"
+            >
+              <ArrowLeft size={16} />
+              Back to Explore
+            </Link>
+          )}
         </div>
 
         {/* Main Content */}
@@ -222,5 +240,5 @@ export default function DestinationDetails() {
         </div>
       </div>
     </>
-  )
+  );
 }
