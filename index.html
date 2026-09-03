@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="theme-color" content="#0B1647" />
+
+  <meta name="description"
+    content="TravelBharat — Discover India state by state through destinations, heritage, nature, religion and adventure." />
+
+  <link rel="canonical" href="/" />
+
+  <meta property="og:title" content="TravelBharat — Explore India State by State" />
+
+  <meta property="og:description"
+    content="Explore Indian states, union territories, cities and destinations in one premium tourism encyclopedia." />
+
+  <meta property="og:type" content="website" />
+
+  <!-- fevicon icons -->
+
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="/favicon.svg"
+/>
+
+<link
+  rel="icon"
+  type="image/png"
+  sizes="16x16"
+  href="/favicon-16x16.png"
+/>
+
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="/favicon-32x32.png"
+/>
+
+<link
+  rel="apple-touch-icon"
+  sizes="180x180"
+  href="/apple-touch-icon.png"
+/>
+
+<link
+  rel="manifest"
+  href="/site.webmanifest"
+/>
+
+  <!-- Restore saved theme before React loads to prevent light-mode flash -->
+  <script>
+    (() => {
+      try {
+        const theme = localStorage.getItem("tb-theme");
+
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch (error) {
+        // Ignore localStorage errors
+      }
+    })();
+  </script>
+
+  <title>TravelBharat — Explore India</title>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

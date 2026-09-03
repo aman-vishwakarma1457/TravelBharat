@@ -1,0 +1,53 @@
+const stateImages = [
+  'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1000&q=85',
+  'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1000&q=85',
+  'https://images.unsplash.com/photo-1595658658481-d53d3f999875?auto=format&fit=crop&w=1000&q=85',
+  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=85'
+]
+
+export const states = [
+  ['Andhra Pradesh','Amaravati','Vijayawada, Visakhapatnam','Temples, beaches and the dramatic Eastern Ghats.'],
+  ['Arunachal Pradesh','Itanagar','Tawang, Ziro','Himalayan valleys, monasteries and pristine mountain landscapes.'],
+  ['Assam','Dispur','Guwahati, Kaziranga','Tea gardens, river islands and extraordinary wildlife.'],
+  ['Bihar','Patna','Bodh Gaya, Patna','Ancient Buddhist heritage and historic riverside cities.'],
+  ['Chhattisgarh','Raipur','Jagdalpur, Bilaspur','Waterfalls, forests and fascinating tribal culture.'],
+  ['Goa','Panaji','Panaji, Margao','Sun-soaked beaches, Portuguese heritage and relaxed coastal life.'],
+  ['Gujarat','Gandhinagar','Ahmedabad, Kutch','Historic cities, craft traditions, temples and the Rann of Kutch.'],
+  ['Haryana','Chandigarh','Gurugram, Kurukshetra','Historic battlefields, heritage sites and modern urban culture.'],
+  ['Himachal Pradesh','Shimla','Manali, Dharamshala','Snow peaks, cedar forests and iconic hill towns.'],
+  ['Jharkhand','Ranchi','Ranchi, Deoghar','Waterfalls, forests, temples and indigenous traditions.'],
+  ['Karnataka','Bengaluru','Mysuru, Hampi','Royal palaces, ancient ruins, coffee country and beaches.'],
+  ['Kerala','Thiruvananthapuram','Kochi, Alappuzha','Backwaters, Ayurveda, beaches and lush tropical landscapes.'],
+  ['Madhya Pradesh','Bhopal','Indore, Khajuraho','Tiger reserves, forts, temples and remarkable central Indian history.'],
+  ['Maharashtra','Mumbai','Mumbai, Pune, Aurangabad','Caves, forts, cosmopolitan cities and a spectacular coastline.'],
+  ['Manipur','Imphal','Imphal, Loktak','Loktak Lake, hill landscapes and rich artistic traditions.'],
+  ['Meghalaya','Shillong','Shillong, Cherrapunji','Cloud forests, living root bridges and dramatic waterfalls.'],
+  ['Mizoram','Aizawl','Aizawl, Lunglei','Rolling hills, forests and vibrant Mizo culture.'],
+  ['Nagaland','Kohima','Kohima, Dimapur','Mountain villages, festivals and distinctive Naga heritage.'],
+  ['Odisha','Bhubaneswar','Puri, Konark','Temple architecture, beaches and ancient coastal culture.'],
+  ['Punjab','Chandigarh','Amritsar, Patiala','Golden Temple, royal heritage and warm Punjabi hospitality.'],
+  ['Rajasthan','Jaipur','Jaipur, Udaipur, Jodhpur','Palaces, forts, desert landscapes and royal traditions.'],
+  ['Sikkim','Gangtok','Gangtok, Pelling','Himalayan monasteries, alpine lakes and peaceful mountain towns.'],
+  ['Tamil Nadu','Chennai','Madurai, Ooty, Thanjavur','Temple cities, classical culture and beautiful hill country.'],
+  ['Telangana','Hyderabad','Hyderabad, Warangal','Historic forts, Deccan architecture and famous culinary culture.'],
+  ['Tripura','Agartala','Agartala, Unakoti','Palaces, rock carvings and green hill landscapes.'],
+  ['Uttar Pradesh','Lucknow','Agra, Varanasi, Lucknow','Monuments, sacred cities, cuisine and extraordinary living history.'],
+  ['Uttarakhand','Dehradun','Rishikesh, Nainital','Himalayan adventures, pilgrimage towns and serene lakes.'],
+  ['West Bengal','Kolkata','Darjeeling, Kolkata','Colonial heritage, tea hills, culture and the Sundarbans.'],
+  ['Andaman & Nicobar Islands','Port Blair','Port Blair, Havelock','Turquoise waters, tropical forests and island adventures.','UT'],
+  ['Chandigarh','Chandigarh','Chandigarh','A planned city known for modernist architecture and gardens.','UT'],
+  ['Dadra & Nagar Haveli and Daman & Diu','Daman','Daman, Silvassa','Coastal escapes, heritage churches and forested landscapes.','UT'],
+  ['Delhi','New Delhi','New Delhi','India’s capital, filled with monumental history, food and culture.','UT'],
+  ['Jammu & Kashmir','Srinagar','Srinagar, Gulmarg','Lakes, Mughal gardens and spectacular Himalayan scenery.','UT'],
+  ['Ladakh','Leh','Leh, Nubra','High-altitude deserts, monasteries and dramatic mountain passes.','UT'],
+  ['Lakshadweep','Kavaratti','Kavaratti, Agatti','Coral islands, lagoons and crystal-clear tropical waters.','UT'],
+  ['Puducherry','Puducherry','Puducherry, Auroville','French-colonial streets, beaches, cafés and spiritual retreats.','UT']
+].map((s, i) => ({
+  id: s[0].toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+  name: s[0], capital: s[1], cities: s[2].split(', '), description: s[3],
+  image: stateImages[i % stateImages.length], type: s[4] || 'State',
+  destinations: 4 + (i % 9),
+  bestTime: ['October – March','October – April','November – April','October – February'][i % 4],
+  tagline: `Discover the landscapes, stories and local experiences of ${s[0]}.`,
+  highlights: [s[2].split(', ')[0], s[2].split(', ')[1] || s[2].split(', ')[0], s[1]].filter(Boolean)
+}))
