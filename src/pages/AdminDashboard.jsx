@@ -944,8 +944,7 @@ function Destinations({
 }) {
   const status = (id, value) => {
     const item = filtered.find(
-      (destination) =>
-        destination.id === id
+      (destination) => destination.id === id
     )
 
     setItems((previous) =>
@@ -954,8 +953,7 @@ function Destinations({
           ? {
               ...destination,
               status: value,
-              verified:
-                value === 'Verified',
+              verified: value === 'Verified',
               lastUpdated: 'Just now',
             }
           : destination
@@ -964,17 +962,14 @@ function Destinations({
 
     showToast({
       title: 'Successfully updated',
-      message: `${
-        item?.name || 'Destination'
-      } successfully updated.`,
+      message: `${item?.name || 'Destination'} successfully updated.`,
     })
   }
 
   return (
     <div>
-
+      {/* HEADER */}
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
             Content
@@ -991,21 +986,19 @@ function Destinations({
 
         <button
           type="button"
-          onClick={() => {
-            setView('form')
-          }}
-          className="btn-primary"
+          onClick={() => setView('form')}
+          className="btn-primary w-full sm:w-auto"
         >
           <Plus size={17} />
           Add Destination
         </button>
       </div>
 
+      {/* MAIN CARD */}
       <div className="card overflow-hidden">
-
+        {/* SEARCH */}
         <div className="border-b border-slate-200 p-4 dark:border-white/10">
-          <div className="relative max-w-md">
-
+          <div className="relative w-full sm:max-w-md">
             <Search
               className="absolute left-3 top-3 text-slate-400"
               size={17}
@@ -1014,18 +1007,18 @@ function Destinations({
             <input
               className="input pl-10"
               value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search destinations..."
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* ================================================= */}
+        {/* DESKTOP TABLE */}
+        {/* ================================================= */}
 
-          <table className="w-full min-w-[1000px] text-left text-sm">
-
+        <div className="hidden overflow-x-auto md:block">
+          <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-white/5">
               <tr>
                 <th className="px-5 py-4">
@@ -1055,147 +1048,251 @@ function Destinations({
             </thead>
 
             <tbody className="divide-y divide-slate-100 dark:divide-white/10">
-
-              {filtered.map(
-                (destination) => (
-                  <tr
-                    key={destination.id}
-                    className="transition hover:bg-slate-50/70 dark:hover:bg-white/5"
-                  >
-
-                    <td className="px-5 py-4">
-                      <div className="flex min-w-[280px] items-center gap-3">
-
-                        <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
-                          <img
-                            src={getDestinationImage(
-                              destination
-                            )}
-                            alt={destination.name}
-                            className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                            loading="lazy"
-                            onError={
-                              handleImageError
-                            }
-                          />
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="truncate font-bold text-navy-900 dark:text-white">
-                            {destination.name}
-                          </p>
-
-                          <p className="mt-1 truncate text-[11px] font-normal text-slate-400">
-                            {destination.city ||
-                              'India'}
-                          </p>
-                        </div>
-
+              {filtered.map((destination) => (
+                <tr
+                  key={destination.id}
+                  className="transition hover:bg-slate-50/70 dark:hover:bg-white/5"
+                >
+                  {/* DESTINATION */}
+                  <td className="px-5 py-4">
+                    <div className="flex min-w-[280px] items-center gap-3">
+                      <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
+                        <img
+                          src={getDestinationImage(destination)}
+                          alt={destination.name}
+                          className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                          loading="lazy"
+                          onError={handleImageError}
+                        />
                       </div>
-                    </td>
 
-                    <td className="text-slate-500 dark:text-slate-400">
-                      {destination.state}
-                    </td>
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-navy-900 dark:text-white">
+                          {destination.name}
+                        </p>
 
-                    <td>
-                      <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10">
-                        {destination.category}
-                      </span>
-                    </td>
+                        <p className="mt-1 truncate text-[11px] font-normal text-slate-400">
+                          {destination.city || 'India'}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
 
-                    <td>
-                      <select
-                        value={
-                          destination.status
-                        }
-                        onChange={(event) =>
-                          status(
-                            destination.id,
-                            event.target.value
-                          )
-                        }
-                        className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
+                  {/* STATE */}
+                  <td className="text-slate-500 dark:text-slate-400">
+                    {destination.state}
+                  </td>
+
+                  {/* CATEGORY */}
+                  <td>
+                    <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+                      {destination.category}
+                    </span>
+                  </td>
+
+                  {/* STATUS */}
+                  <td>
+                    <select
+                      value={destination.status}
+                      onChange={(event) =>
+                        status(
+                          destination.id,
+                          event.target.value
+                        )
+                      }
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
+                    >
+                      <option value="Verified">
+                        Verified
+                      </option>
+
+                      <option value="Pending Review">
+                        Pending Review
+                      </option>
+
+                      <option value="Draft">
+                        Draft
+                      </option>
+                    </select>
+                  </td>
+
+                  {/* UPDATED */}
+                  <td className="text-xs text-slate-500 dark:text-slate-400">
+                    {destination.lastUpdated}
+                  </td>
+
+                  {/* ACTIONS */}
+                  <td className="pr-5">
+                    <div className="flex justify-end gap-1">
+                      <Link
+                        to={`/destination/${destination.id}`}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+                        aria-label={`View ${destination.name}`}
+                        title="View destination"
                       >
-                        <option value="Verified">
-                          Verified
-                        </option>
+                        <Eye size={15} />
+                      </Link>
 
-                        <option value="Pending Review">
-                          Pending Review
-                        </option>
+                      <button
+                        type="button"
+                        onClick={() => edit(destination)}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-orange-50 hover:text-orange-500 dark:text-slate-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+                        aria-label={`Edit ${destination.name}`}
+                        title="Edit destination"
+                      >
+                        <Pencil size={15} />
+                      </button>
 
-                        <option value="Draft">
-                          Draft
-                        </option>
-                      </select>
-                    </td>
-
-                    <td className="text-xs text-slate-500">
-                      {destination.lastUpdated}
-                    </td>
-
-                    <td className="pr-5">
-                      <div className="flex justify-end gap-1">
-
-                        <Link
-                          to={`/destination/${destination.id}`}
-                          className="grid h-8 w-8 place-items-center rounded-lg transition hover:bg-slate-100 dark:hover:bg-white/10"
-                          aria-label={`View ${destination.name}`}
-                        >
-                          <Eye size={15} />
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            edit(destination)
-                          }
-                          className="grid h-8 w-8 place-items-center rounded-lg transition hover:bg-slate-100 dark:hover:bg-white/10"
-                          aria-label={`Edit ${destination.name}`}
-                        >
-                          <Pencil size={15} />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            remove(destination)
-                          }
-                          className="grid h-8 w-8 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
-                          aria-label={`Delete ${destination.name}`}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-
-                      </div>
-                    </td>
-
-                  </tr>
-                )
-              )}
+                      <button
+                        type="button"
+                        onClick={() => remove(destination)}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                        aria-label={`Delete ${destination.name}`}
+                        title="Delete destination"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-
-          {filtered.length === 0 && (
-            <div className="p-12 text-center">
-
-              <Search
-                className="mx-auto text-slate-300"
-                size={28}
-              />
-
-              <p className="mt-3 text-sm font-bold text-navy-900 dark:text-white">
-                No destinations found
-              </p>
-
-              <p className="mt-1 text-xs text-slate-500">
-                Try another search term.
-              </p>
-
-            </div>
-          )}
         </div>
+
+        {/* ================================================= */}
+        {/* MOBILE DESTINATION CARDS */}
+        {/* ================================================= */}
+
+        <div className="grid gap-3 p-3 md:hidden">
+          {filtered.map((destination) => (
+            <div
+              key={destination.id}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-navy-900"
+            >
+              {/* IMAGE + NAME */}
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
+                  <img
+                    src={getDestinationImage(destination)}
+                    alt={destination.name}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    onError={handleImageError}
+                  />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-extrabold text-navy-900 dark:text-white">
+                    {destination.name}
+                  </h3>
+
+                  <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+                    {destination.city || 'India'}
+                  </p>
+
+                  <p className="mt-1 truncate text-[11px] text-slate-400">
+                    {destination.state}
+                  </p>
+                </div>
+              </div>
+
+              {/* CATEGORY + STATUS */}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+                  {destination.category}
+                </span>
+
+                <select
+                  value={destination.status}
+                  onChange={(event) =>
+                    status(
+                      destination.id,
+                      event.target.value
+                    )
+                  }
+                  className="max-w-[145px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
+                  aria-label={`Status for ${destination.name}`}
+                >
+                  <option value="Verified">
+                    Verified
+                  </option>
+
+                  <option value="Pending Review">
+                    Pending Review
+                  </option>
+
+                  <option value="Draft">
+                    Draft
+                  </option>
+                </select>
+              </div>
+
+              {/* UPDATED */}
+              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-white/10">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    Updated
+                  </p>
+
+                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {destination.lastUpdated}
+                  </p>
+                </div>
+
+                {/* MOBILE ACTIONS */}
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    to={`/destination/${destination.id}`}
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                    aria-label={`View ${destination.name}`}
+                    title="View"
+                  >
+                    <Eye size={16} />
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => edit(destination)}
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                    aria-label={`Edit ${destination.name}`}
+                    title="Edit"
+                  >
+                    <Pencil size={16} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => remove(destination)}
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:hover:bg-red-500"
+                    aria-label={`Delete ${destination.name}`}
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* EMPTY STATE */}
+        {filtered.length === 0 && (
+          <div className="p-12 text-center">
+            <Search
+              className="mx-auto text-slate-300"
+              size={28}
+            />
+
+            <p className="mt-3 text-sm font-bold text-navy-900 dark:text-white">
+              No destinations found
+            </p>
+
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Try another search term.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -120,8 +120,10 @@ export default function Home() {
               </p>
 
               {/* Search */}
-              <div className="mt-7 w-full sm:mt-8">
-                <SearchBar large />
+              <div className="mt-7 flex w-full justify-center sm:mt-8 sm:justify-start">
+                <div className="w-full sm:max-w-2xl">
+                  <SearchBar large />
+                </div>
               </div>
 
               {/* Hero Stats */}
