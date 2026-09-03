@@ -1168,10 +1168,10 @@ function Destinations({
           {filtered.map((destination) => (
             <div
               key={destination.id}
-              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-navy-900"
+              className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-navy-900"
             >
               {/* IMAGE + NAME */}
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-white/10">
                   <img
                     src={getDestinationImage(destination)}
@@ -1198,8 +1198,8 @@ function Destinations({
               </div>
 
               {/* CATEGORY + STATUS */}
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+              <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
+                <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
                   {destination.category}
                 </span>
 
@@ -1211,7 +1211,7 @@ function Destinations({
                       event.target.value
                     )
                   }
-                  className="max-w-[145px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
+                  className="min-w-0 max-w-[150px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-navy-900 outline-none dark:border-white/10 dark:bg-navy-800 dark:text-slate-100"
                   aria-label={`Status for ${destination.name}`}
                 >
                   <option value="Verified">
@@ -1229,46 +1229,59 @@ function Destinations({
               </div>
 
               {/* UPDATED */}
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-white/10">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                    Updated
-                  </p>
+              <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  Updated
+                </p>
 
-                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    {destination.lastUpdated}
-                  </p>
-                </div>
+                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {destination.lastUpdated}
+                </p>
 
                 {/* MOBILE ACTIONS */}
-                <div className="flex items-center gap-1.5">
+                <div className="mt-3 grid w-full grid-cols-3 gap-2">
+                  {/* VIEW */}
                   <Link
                     to={`/destination/${destination.id}`}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
                     aria-label={`View ${destination.name}`}
-                    title="View"
+                    title="View destination"
                   >
                     <Eye size={16} />
+
+                    <span className="text-xs font-bold">
+                      View
+                    </span>
                   </Link>
 
+                  {/* EDIT */}
                   <button
                     type="button"
                     onClick={() => edit(destination)}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
+                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-slate-600 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white dark:border-white/10 dark:text-slate-300 dark:hover:border-orange-500 dark:hover:bg-orange-500 dark:hover:text-white"
                     aria-label={`Edit ${destination.name}`}
-                    title="Edit"
+                    title="Edit destination"
                   >
                     <Pencil size={16} />
+
+                    <span className="text-xs font-bold">
+                      Edit
+                    </span>
                   </button>
 
+                  {/* DELETE */}
                   <button
                     type="button"
                     onClick={() => remove(destination)}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:hover:bg-red-500"
+                    className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-red-100 text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:hover:border-red-500 dark:hover:bg-red-500 dark:hover:text-white"
                     aria-label={`Delete ${destination.name}`}
-                    title="Delete"
+                    title="Delete destination"
                   >
                     <Trash2 size={16} />
+
+                    <span className="text-xs font-bold">
+                      Delete
+                    </span>
                   </button>
                 </div>
               </div>
